@@ -1,0 +1,66 @@
+# beamdata — Customer Service Policies
+
+---
+
+## 1. Technical Support
+
+- Technical support is available Sunday to Thursday, 9AM–6PM (Riyadh Time).
+- For urgent issues outside working hours, submit a ticket at: support@beamdata.ai
+- Standard ticket response time: 24 business hours.
+- Critical issues (Priority 1) are resolved within 4 hours.
+
+---
+
+## 2. Subscriptions & Billing
+
+- Monthly and annual subscription plans are available.
+- Annual subscription saves 20% compared to monthly billing.
+- Plan upgrades can be done anytime; the difference is calculated automatically.
+- Cancellation requires 7 days notice before the renewal date.
+- Invoices are automatically sent to the registered email at the start of each billing cycle.
+- For detailed invoices or payment updates, contact: billing@beamdata.ai
+
+---
+
+## 3. Data Analytics Services
+
+- beamdata provides interactive dashboards for real-time data analysis.
+- The platform supports data import from: Excel, CSV, Google Sheets, SQL, APIs.
+- Reports can be exported in: PDF, Excel, PNG formats.
+- Data refreshes automatically every 15 minutes on paid plans.
+
+---
+
+## 4. AI Solutions
+
+- beamdata offers custom AI models trained on client data.
+- Custom model development takes 2 to 4 weeks depending on data size.
+- The solution includes: data cleaning, model building, testing, and deployment.
+- Post-deployment support is included for 3 months within the package.
+
+---
+
+## 5. Cloud Data Storage
+
+- beamdata provides secure cloud storage encrypted with AES-256.
+- Automatic daily backups are available.
+- Deleted data can be recovered within 30 days of deletion.
+- Storage limits by plan: Starter 50GB, Pro 500GB, Enterprise unlimited.
+
+---
+
+## 6. Privacy & Data Protection
+
+- beamdata complies with Saudi PDPL and international GDPR standards.
+- Client data is never shared with third parties without explicit consent.
+- Clients have the right to export or delete their data at any time.
+
+---
+
+## 7. Contact Information
+
+- Technical Support: support@beamdata.ai
+- Billing: billing@beamdata.ai
+- Sales: sales@beamdata.ai
+- Website: www.beamdata.ai
+- Working Hours: Sunday to Thursday, 9AM to 6PM (Riyadh Time)
