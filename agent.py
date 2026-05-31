@@ -123,6 +123,7 @@ def full_pipeline(vectorstore, chain, row):
         return {
             "ticket": ticket,
             "status": "🔴 BLOCKED",
+            # "risk_level": risk_level, add 
             "risk":   risk,
             "reply":  "This request has been escalated to our security team."
         }
