@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import json
 
 import gspread
+from pyairtable import Api
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
@@ -198,6 +199,46 @@ def log_to_sheets(ticket, attack_types):
     except Exception as e:
         print(f"❌ Error logging to Sheets: {e}")
 
+
+
+
+def log_to_airtable(ticket, attack_types):
+
+    api_key = os.environ.get("AIRTABLE_PAT")
+    base_id = os.environ.get("AIRTABLE_BASE_ID")
+    table_name = os.environ.get("AIRTABLE_TABLE_NAME")
+    
+    if not all([api_key, base_id, table_name]):
+        print(" Airtable configuration missing in environment variables.")
+        return
+
+    try:
+        
+        api = Api(api_key)
+        table = api.table(base_id, table_name)
+        
+      
+        all_categories = ["prompt_injection", "jailbreak", "data_extraction", "roleplay"]
+        detected = [a.lower().strip() for a in attack_types]
+        
+  
+        fields = {
+            "Timestamp": datetime.now().isoformat(), 
+            "Ticket": ticket,
+            "Full Attack Text": [attack.lower() for attack in detected]
+        }
+        
+       
+        for cat in all_categories:
+            fields[cat] = 1 if cat in detected else 0
+
+        
+        table.create(fields)
+        print(f"✅ Logged to Airtable successfully: {', '.join(detected)}")
+
+    except Exception as e:
+        print(f" Error logging to Airtable: {e}")
+
 # --- 5. Integrated Pipeline ---
 
 def full_pipeline(vectorstore, chain, row):
@@ -225,7 +266,8 @@ def full_pipeline(vectorstore, chain, row):
             attack_types = [attack_types]
 
         # نرسل البيانات لجوجل شيت (التعديل الجديد سيقوم بتوزيعها على الأعمدة)
-        log_to_sheets(ticket, attack_types)
+        # log_to_sheets(ticket, attack_types)
+        log_to_airtable(ticket, attack_types)
         
         # توليد الرد الأمني
         final_reply = generate_unified_security_reply(chain, attack_types)
@@ -235,10 +277,10 @@ def full_pipeline(vectorstore, chain, row):
             "status": f" BLOCKED: ({', '.join(attack_types).upper()})",
             "reply":  final_reply,
             "forward_to": "Security Admin (High Priority)",
-            "attack_type": attack_types # أضفنا هذا السطر ليعرف المين ماذا سجلنا
+            "attack_type": attack_types 
         }
     
-    # 2. إذا كانت التذكرة آمنة (Allowed)
+    
     context = retrieve(vectorstore, ticket)
     reply = chain.invoke({"context": context, "question": ticket})
     

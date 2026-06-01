@@ -10,3 +10,4 @@ langchain-groq
 langchain==0.1.20
 gspread
 google-auth
+pyairtable
