@@ -234,34 +234,6 @@ def retrieve(vectorstore, question, n_results=2):
     return "\n\n".join([doc.page_content for doc in results])
 
 
-def log_to_sheets(ticket, attack_types):
-    SERVICE_ACCOUNT_FILE = "credentials.json"
-    SCOPES = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    
-    try:
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        client = gspread.authorize(creds)
-        
-        sheet_url = "https://docs.google.com/spreadsheets/d/1vSSprFjkYCGbEmEcf8O7EJ_BqpiWnlB2IEjUwTMlS74/edit#gid=0"
-        sheet = client.open_by_url(sheet_url).sheet1
-
-        all_categories = ["prompt_injection", "jailbreak", "data_extraction", "roleplay"]
-        detected = [a.lower().strip() for a in attack_types]
-        attack_columns = [1 if cat in detected else 0 for cat in all_categories]
-        full_attack_text = ", ".join(detected)
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        row_to_append = [timestamp, ticket, full_attack_text] + attack_columns
-    
-        sheet.append_row(row_to_append)
-        print(f"✅ Logged successfully to Sheets: {', '.join(detected)}")
-    except Exception as e:
-        print(f"❌ Error logging to Sheets: {e}")
-
-
 def log_to_airtable(ticket, attack_types, reason):
     api_key = os.environ.get("AIRTABLE_PAT")
     base_id = os.environ.get("AIRTABLE_BASE_ID")
@@ -319,7 +291,7 @@ def full_pipeline(vectorstore, chain, row, history_text=""):
             
         log_to_airtable(ticket, attack_types, row.get("reason", ""))
        
-        # log_to_sheets(ticket, attack_types)
+        
         
         final_reply = generate_unified_security_reply(chain, attack_types, ticket)
         return {
