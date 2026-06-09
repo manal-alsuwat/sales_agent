@@ -9,6 +9,8 @@ import warnings
 import pandas as pd
 from dotenv import load_dotenv
 import json
+import csv
+
 
 import gspread
 from pyairtable import Api
@@ -240,7 +242,7 @@ def log_to_airtable(ticket, attack_types, reason):
     table_name = os.environ.get("AIRTABLE_TABLE_NAME")
     
     if not all([api_key, base_id, table_name]):
-        print("⚠ Airtable configuration missing in environment variables.")
+        print(" Airtable configuration missing in environment variables.")
         return
 
     try:
@@ -264,9 +266,44 @@ def log_to_airtable(ticket, attack_types, reason):
         # print(fields["Full Attack Text"])
 
         table.create(fields)
+
+        log_to_csv(ticket, attack_types, reason)
+
+
         print(f"✅ Logged to Airtable successfully: {', '.join(detected)}")
     except Exception as e:
         print(f"❌ Error logging to Airtable: {e}")
+
+
+
+def log_to_csv(ticket, attack_types, reason):
+    try:
+        
+        os.makedirs("logs", exist_ok=True)
+        csv_file = "logs/security_logs.csv"
+        file_exists = os.path.isfile(csv_file)
+
+        with open(csv_file, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow([
+                    "timestamp",
+                    "ticket",
+                    "attack_types",
+                    "reason"
+                ])
+
+            writer.writerow([
+                datetime.now().isoformat(),
+                ticket,
+                ", ".join(attack_types),
+                reason
+            ])
+
+        print("Logged to CSV successfully")
+
+    except Exception as e:
+        print(f"CSV logging error: {e}")
 
 
 # --- 5. Integrated Pipeline  ---

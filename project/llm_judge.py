@@ -146,7 +146,7 @@ def save_judge_result(ticket_text, result):
 
     os.makedirs("logs", exist_ok=True)
 
-    csv_file = "logs/security_assessment_log.csv"
+    csv_file = "logs/agent_activity_log.csv"
 
     row = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
