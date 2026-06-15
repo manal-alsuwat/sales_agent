@@ -213,8 +213,8 @@ def generate_unified_security_reply(chain, attack_types, ticket_text):
 
 def build_chain():
     llm = ChatGroq(
-        # model="llama-3.3-70b-versatile",
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
+        # model="llama-3.1-8b-instant",
         api_key=os.environ.get("GROQ_API_KEY"),
         temperature=0.1
     )
@@ -228,8 +228,8 @@ def build_chain():
 
         If the answer cannot be found in the provided context, politely say you do not have enough information and suggest contacting [info@beamdata.ai](mailto:info@beamdata.ai) or visiting beamdata.ai/contact.
 
-        For overview questions, provide a brief summary (3–5 sentences). You may mention the names of the four key areas as a simple list, but do not explain them unless the user asks.
-
+        For overview questions about a BeamData service, first provide a concise 3–5 sentence summary describing the purpose and business value of the service.
+        
         For follow-up questions, use the conversation history only to identify the referenced BeamData service. References such as "it", "its", "this", "that", "them", and "this service" refer to the most recently discussed BeamData service unless the user clearly changes the topic. Then answer using the corresponding information from the provided context.
 
         When answering questions about BeamData services, always use the exact service names found in the provided context. Never rename, generalize, or infer service names.
@@ -242,7 +242,19 @@ def build_chain():
 
         Keep your answers professional, friendly, natural, and concise.
 
-        
+        Formatting rules:
+        - For overview questions, provide a concise 3–5 sentence summary.
+        - When listing services, key areas, sub-services, features, or steps, always use a numbered list.
+        - Keep the original order and wording from the provided context.
+        - Do not merge list items into a paragraph.
+
+
+        Answer at the same level of abstraction as the user's question.
+
+        - If the user asks about BeamData's overall solutions, offerings, capabilities, or AI services, answer at the company level by describing the core service categories.
+        - Do not answer broad company-level questions with sub-services, key areas, or implementation details from a single service.
+        - Only discuss the key areas or sub-services of AI Strategy, AI Implementation, or any other service if the user explicitly asks about that specific service.
+
         CONTEXT: {context}
         QUESTION: {question}
         ANSWER:"""
