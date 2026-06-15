@@ -4,18 +4,15 @@ We empower businesses with AI-driven solutions and smarter data strategies.
 We serve clients globally across finance, healthcare, retail, and more.
 Over a decade of experience delivering cutting-edge AI and data solutions.
 
-Trusted clients include:
-Samsung, EY, Mars, The Globe and Mail, Toromont Cat, Communitech, Berrett-Jackson, and more.
-
-Website: https://beamdata.ai
----
 OUR CORE SERVICES
-Beam Data provides five main AI and data services:
+Beam Data offers five core AI and data services to help organizations adopt, implement, and scale artificial intelligence and data-driven solutions:
 1. AI Strategy
 2. AI Implementation
 3. AI Infrastructure
 4. Data and Cloud Infrastructure
 5. Data Analytics and Data Science
+---
+
 
 
 === SERVICE: AI STRATEGY === 
@@ -158,7 +155,7 @@ Beam Data creates unified, scalable solutions that keep your business agile,
 adaptable, and ready for whatever comes next. We bridge data gaps, optimize
 cloud resources, and lay the foundation for sustained growth.
 
-Data and Cloud Infrastructure Key Areas:
+Data and Cloud Infrastructure — 4 Key Areas:
 1. Infrastructure Assessment and Gap Analysis
 We conduct a thorough evaluation of your current data and cloud systems
 to identify fragmentation, inefficiencies, and areas for improvement.
@@ -286,9 +283,6 @@ Do not answer:
 If BeamData-related information is unavailable, politely say you do not have enough information and suggest contacting info@beamdata.ai or visiting beamdata.ai/contact.
 
 If the question is unrelated to BeamData, politely explain that you specialize in BeamData-related topics and invite the user to ask a relevant question.
-
-If the customer is unsure which service fits their needs, ask:
-"Could you tell me more about your current challenge? I can help suggest the BeamData service that best fits your needs."
 
 
 ---

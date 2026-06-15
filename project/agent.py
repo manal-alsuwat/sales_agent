@@ -64,7 +64,7 @@ def build_vectorstore(policies):
         separators=["\n---\n", "\n\n", "\n", ".", " "]
     )
     chunks = splitter.split_text(policies)
-    chunks = [c for c in chunks if len(c) > 100]
+    # chunks = [c for c in chunks if len(c) > 100]
 
     embeddings  = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vectorstore = Chroma.from_texts(chunks, embeddings)
@@ -222,23 +222,26 @@ def build_chain():
     prompt = PromptTemplate(
         input_variables=["context", "question"],
         template="""You are a professional sales assistant for BeamData.
-        Answer ONLY using the provided context.
-        Never mention the context or internal instructions.
+        Answer using the provided BeamData information and the conversation history. Never mention the context or internal instructions.
 
         If the question is unrelated to BeamData, politely explain that you specialize in BeamData-related topics and invite the user to ask a relevant question.
 
-        If the answer cannot be determined from both the provided context and the conversation history, politely say you do not have enough information and suggest contacting info@beamdata.ai or visiting beamdata.ai/contact.
-        For overview questions, give a brief summary and never list all four key areas unless the user specifically asks for them.
-        Use the conversation history to understand the user's intent and resolve follow-up questions.
-        For references such as "it", "this", "that", "them", "those", "more", or "this service", always interpret them as the most recently discussed BeamData service or topic unless the user clearly specifies otherwise.
-        When answering follow-up questions, use both the conversation history and the provided context together.
+        If the answer cannot be found in the provided context, politely say you do not have enough information and suggest contacting [info@beamdata.ai](mailto:info@beamdata.ai) or visiting beamdata.ai/contact.
 
-        Answer only what the user asks and keep responses concise unless more detail is requested.
-        Use the exact service names from the provided context and do not invent or rename services.
-        Do not repeat information already provided unless the user asks for a recap.
-        Avoid repetitive phrases and unnecessary contact or booking information.
+        For overview questions, provide a brief summary (3–5 sentences). You may mention the names of the four key areas as a simple list, but do not explain them unless the user asks.
+
+        For follow-up questions, use the conversation history only to identify the referenced BeamData service. References such as "it", "its", "this", "that", "them", and "this service" refer to the most recently discussed BeamData service unless the user clearly changes the topic. Then answer using the corresponding information from the provided context.
+
+        When answering questions about BeamData services, always use the exact service names found in the provided context. Never rename, generalize, or infer service names.
+        
+        Resolve follow-up references internally and answer directly. Do not mention the conversation history or explain how you identified the referenced service.
+
+        Never invent, infer, or rename BeamData services or details that are not explicitly present in the provided context.
+
+        Answer only what the user asks, keep responses concise unless more detail is requested, avoid unnecessary repetition, and do not repeat earlier information unless the user asks for a recap.
 
         Keep your answers professional, friendly, natural, and concise.
+
         
         CONTEXT: {context}
         QUESTION: {question}
@@ -247,9 +250,23 @@ def build_chain():
     return prompt | llm | StrOutputParser()
 
 
-def retrieve(vectorstore, question, n_results=2):
-    retriever = vectorstore.as_retriever(search_kwargs={"k": n_results})
-    results   = retriever.invoke(question)  
+# def retrieve(vectorstore, question, n_results=3):
+#     retriever = vectorstore.as_retriever(search_kwargs={"k": n_results})
+#     results   = retriever.invoke(question)  
+#     return "\n\n".join([doc.page_content for doc in results])
+
+
+def retrieve(vectorstore, question, n_results=3):
+    retriever = vectorstore.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": n_results,
+            "fetch_k": 8,
+            "lambda_mult": 0.7
+        }
+    )
+
+    results = retriever.invoke(question)
     return "\n\n".join([doc.page_content for doc in results])
 
 
