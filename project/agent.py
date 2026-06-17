@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 import json
 import csv
 
-
 import gspread
 from pyairtable import Api
 from google.oauth2.service_account import Credentials
@@ -214,7 +213,6 @@ def generate_unified_security_reply(chain, attack_types, ticket_text):
 def build_chain():
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
-        # model="llama-3.1-8b-instant",
         api_key=os.environ.get("GROQ_API_KEY"),
         temperature=0.1
     )
@@ -262,12 +260,6 @@ def build_chain():
     return prompt | llm | StrOutputParser()
 
 
-# def retrieve(vectorstore, question, n_results=3):
-#     retriever = vectorstore.as_retriever(search_kwargs={"k": n_results})
-#     results   = retriever.invoke(question)  
-#     return "\n\n".join([doc.page_content for doc in results])
-
-
 def retrieve(vectorstore, question, n_results=3):
     retriever = vectorstore.as_retriever(
         search_type="mmr",
@@ -280,6 +272,7 @@ def retrieve(vectorstore, question, n_results=3):
 
     results = retriever.invoke(question)
     return "\n\n".join([doc.page_content for doc in results])
+
 
 
 def log_to_airtable(ticket, attack_types, reason):
@@ -320,8 +313,6 @@ def log_to_airtable(ticket, attack_types, reason):
     except Exception as e:
         print(f"❌ Error logging to Airtable: {e}")
 
-
-
 def log_to_csv(ticket, attack_types, reason):
     try:
         
@@ -350,10 +341,9 @@ def log_to_csv(ticket, attack_types, reason):
 
     except Exception as e:
         print(f"CSV logging error: {e}")
-
-
+        
 # --- 5. Integrated Pipeline  ---
-def full_pipeline(vectorstore, chain, row, history_text=""):
+def full_pipeline(vectorstore, chain, row, history_text="", mode=None):
     try:
         raw_text = row["ticket_text"]
         if isinstance(raw_text, str) and raw_text.startswith("{"):
@@ -367,7 +357,7 @@ def full_pipeline(vectorstore, chain, row, history_text=""):
     action = row["action"]
     risk   = row["risk_level"]
 
-    if action == "escalate_to_human" or risk == "high":
+    if  risk == "high":
         attack_types = identify_attack_type_smart(chain, ticket)
         if isinstance(attack_types, str):
             attack_types = [attack_types]
@@ -396,7 +386,6 @@ def full_pipeline(vectorstore, chain, row, history_text=""):
         # }
 
     context = retrieve(vectorstore, ticket)
-
     # full_question = f"Previous conversation:\n{history_text}\n\nCurrent question: {ticket}" if history_text else ticket
     # reply = chain.invoke({"context": context, "question": full_question})
 
@@ -421,28 +410,116 @@ def full_pipeline(vectorstore, chain, row, history_text=""):
     }
 
 
-# --- 6. Live Interface ---
+
+    # -------------------------
+    # LIVE CHAT FUNCTION
+    # -------------------------
 def live_chat(vectorstore, chain):
+
     print("\n" + "=" * 50)
-    print("  🤖 beamdata Sales Assistant (Live Mode)")
-    print("  Type 'exit' to quit")
+    print("  🤖 Beamdata Assistant")
     print("=" * 50)
 
-    chat_history = [] 
-    MAX_MESSAGES = 3
-    message_count = 0
+    chat_history = []
 
+    # -------------------------
+    # STEP 1: MAIN MENU
+    # -------------------------
+    print("\nWelcome 👋 How can I help you today?")
+    print("1- Explore Services")
+    print("2- Get Technical Support")
+
+    mode = None
+    while mode not in ["1", "2"]:
+        mode = input("\nChoose 1 or 2: ").strip()
+
+    if mode == "1":
+        session_mode = "services"
+    else:
+        session_mode = "tech_support"
+
+    service_type = None
+    message_count = 0
+    MAX_TECH_MESSAGES = 3
+
+    # -------------------------
+    # STEP 2A: SERVICES FLOW
+    # -------------------------
+    if session_mode == "services":
+
+        print("\n--- Services Menu ---")
+        print("1- AI Strategy")
+        print("2- AI Implementation")
+        print("3- AI Infrastructure")
+        print("4- Data and Cloud Infrastructure")
+        print("5- Data Analytics and Data Science")
+
+        while service_type not in ["1", "2", "3", "4", "5"]:
+            service_type = input("\nSelect service 1, 2, 3, 4 or 5: ").strip()
+
+        service_map = {
+            "1": "AI Strategy",
+            "2": "AI Implementation",
+            "3": "AI Infrastructure",
+            "4": "Data and Cloud Infrastructure",
+            "5": "Data Analytics and Data Science"
+           
+        }
+
+        selected_service = service_map[service_type]
+
+        print(f"\n✅ You selected: {selected_service}")
+        print("\nFetching information...\n")
+
+        # Example: replace this with vectorstore retrieval or stored DB
+        result = full_pipeline(
+            vectorstore,
+            chain,
+            row={
+                "ticket_text": selected_service,
+                "action": "allow",
+                "risk_level": "low"
+            },
+            history_text="MODE: services"
+        )
+
+        print("🤖 Beamdata:", result["reply"])
+        print(
+"""
+🙏 Thank you for using Beamdata Services.
+
+If you need anything else, feel free to contact us:
+
+📞 Contact Information
+- Contact Form: https://beamdata.ai/contact/
+- Email: info@beamdata.ai
+- Phone: 365-795-0102
+"""
+)
+
+        return  # services ends here (normal chatbot behavior)
+
+    # -------------------------
+    # STEP 2B: TECH SUPPORT FLOW
+    # -------------------------
+    print(
+    "\n🔧 Technical Support Mode Activated.\n\n"
+    "Please describe your issue or suggestion.\n"
+    "💬 You can send up to 3 messages in this session.\n"
+    )
     while True:
 
-        if message_count >= MAX_MESSAGES:
-            print("\n🔒 Maximum number of messages reached (3).")
-            print("👋 Chat session ended.")
+        if message_count >= MAX_TECH_MESSAGES:
+            print("\n🔒 Message limit reached (3). Session ended. 👋 Have a nice day!")
             break
 
         user_input = input("\nYou: ").strip()
 
-        if user_input.lower() == "exit": break
-        if not user_input: continue
+        if user_input.lower() == "exit":
+            break
+
+        if not user_input:
+            continue
 
         message_count += 1
 
@@ -450,40 +527,38 @@ def live_chat(vectorstore, chain):
             f"User: {h['user']}\nAssistant: {h['assistant']}"
             for h in chat_history[-3:]
         ])
-      
 
-
-        # mock_row = {"ticket_text": user_input, "action": "allow", "risk_level": "low"}
         judge_result = judge_ticket(user_input)
 
-        # print(judge_result)
         mock_row = {
             "ticket_text": user_input,
             "action": judge_result["action"],
             "risk_level": judge_result["risk_level"],
             "reason": judge_result["reason"]
         }
-         
-          
-        result = full_pipeline(vectorstore, chain, row=mock_row, history_text=history_text)
-        chat_history.append({"user": user_input, "assistant": result['reply']})
-        print("\n" + "=" * 65)
-        print(f"\n Status: {result['status']}")
 
-        print(f"🤖 Beamdata: {result['reply']}")
+        result = full_pipeline(
+            vectorstore,
+            chain,
+            row=mock_row,
+            history_text=history_text,
+            mode="tech_support"
+        )
 
-        if result['forward_to']:
-            print("\n Suspicious activity detected and logged.")
+        chat_history.append({
+            "user": user_input,
+            "assistant": result["reply"]
+        })
 
-        if result.get("attack_type"):
-            print(f"\n Attack Type: {', '.join(result['attack_type']).replace('_', ' ').title()}")    
+        print("\n" + "=" * 60)
+        print("🤖 Beamdata:", result["reply"])
+
+        remaining = MAX_TECH_MESSAGES - message_count
+        print(f"\nRemaining messages: {remaining}")
 
         if result.get("terminate_session"):
-            print("\n Session terminated due to security policy.")
+            print("\n🚨 Session terminated by policy.")
             break
-
-        remaining = MAX_MESSAGES - message_count
-        print(f"\n Remaining messages: {remaining}")
 
 
 # --- 7. Execution ---
