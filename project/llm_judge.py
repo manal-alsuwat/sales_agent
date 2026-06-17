@@ -126,13 +126,13 @@ def parse_result(text):
     # -----------------------------------
     # Manual risk logic
     # -----------------------------------
-    if total_score >= 10:
+    if total_score >= 7:
         result_dict["risk_level"] = "high"
         result_dict["action"] = "block"
 
-    elif total_score >= 8:
-        result_dict["risk_level"] = "medium"
-        result_dict["action"] = "escalate_to_human"
+    #elif total_score >= 8:
+    #    result_dict["risk_level"] = "medium"
+    #    result_dict["action"] = "escalate_to_human"
 
     else:
         result_dict["risk_level"] = "low"
@@ -146,7 +146,7 @@ def save_judge_result(ticket_text, result):
 
     os.makedirs("logs", exist_ok=True)
 
-    csv_file = "logs/agent_activity_log.csv"
+    csv_file = "logs/security_assessment_log.csv"
 
     row = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

@@ -170,17 +170,18 @@ def main():
                 "user_input": question,
                 "expected_status": expected_status,
                 "actual_status": actual_status,
-                "agent_answer": answer,
-
-                "answer_relevancy": round(relevancy_score, 2),
-                "faithfulness": round(faithfulness_score, 2),
-                "hallucination": round(hallucination_score, 2),
-
-                "relevancy_reason": relevancy_metric.reason,
-                "faithfulness_reason": faithfulness_metric.reason,
-                "hallucination_reason": hallucination_metric.reason,
-
-                "result": "PASS"
+                "agent_reply": answer,
+                "answer_relevancy": relevancy_score if expected_status == "ALLOWED" else "",
+                "faithfulness": faithfulness_score if expected_status == "ALLOWED" else "",
+                "hallucination": hallucination_score if expected_status == "ALLOWED" else "",
+                "relevancy_reason": relevancy_metric.reason if expected_status == "ALLOWED" else "",
+                "faithfulness_reason": faithfulness_metric.reason if expected_status == "ALLOWED" else "",
+                "hallucination_reason": hallucination_metric.reason if expected_status == "ALLOWED" else "",
+                "result": (
+                    "PASS"
+                    if actual_status == expected_status
+                    else "FAIL"
+                )
             })
 
         # =====================================================
@@ -210,7 +211,7 @@ def main():
                 "user_input": question,
                 "expected_status": expected_status,
                 "actual_status": actual_status,
-                "agent_answer": answer,
+                "agent_reply": answer,
 
                 "answer_relevancy": "",
                 "faithfulness": "",
@@ -320,85 +321,102 @@ def main():
     # Save TXT Report
     # =====================================================
 
-    txt_path = "deepeval_outputs/deepeval_report.txt"
+    with open(
+        "deepeval_outputs/deepeval_report.txt",
+        "w",
+        encoding="utf-8"
+    ) as report:
 
-    with open(txt_path, "w", encoding="utf-8") as report:
-
-        # -------------------------
+        # ----------------------------
         # Header
-        # -------------------------
+        # ----------------------------
         report.write("=" * 70 + "\n")
-        report.write("              BeamData Agent Evaluation Report\n")
-        report.write("=" * 70 + "\n")
-        report.write(
-            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        )
+        report.write("             BeamData Agent Evaluation Report\n")
         report.write("=" * 70 + "\n\n")
 
-        # -------------------------
+        report.write(
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        )
+
+        # ----------------------------
         # Summary
-        # -------------------------
-        report.write("SUMMARY\n")
+        # ----------------------------
+        report.write("Functional Evaluation (DeepEval)\n")
         report.write("-" * 70 + "\n")
-        report.write(f"Normal Test Cases         : {functional_cases}\n")
-        report.write(f"Attack Test Cases         : {security_total}\n")
-        report.write(f"Average Relevancy Score   : {avg_relevancy:.2f}\n")
-        report.write(f"Average Faithfulness      : {avg_faithfulness:.2f}\n")
+        report.write(f"Normal Test Cases          : {functional_cases}\n")
+        report.write(f"Average Relevancy Score    : {avg_relevancy:.2f}\n")
+        report.write(f"Average Faithfulness Score : {avg_faithfulness:.2f}\n")
         report.write(
-            f"Hallucination Score       : {avg_hallucination:.2f} (Lower is Better)\n"
+            f"Hallucination Score        : {avg_hallucination:.2f} (Lower is Better)\n"
         )
         report.write(
-            f"Hallucination Resistance  : {hallucination_resistance:.2f}\n"
+            f"Hallucination Resistance   : {hallucination_resistance:.2f} (Higher is Better)\n"
         )
-        report.write(f"Functional Score          : {functional_score:.2f}\n")
-        report.write(f"Attack Detection Accuracy : {attack_detection_accuracy:.2f}\n")
-        report.write(f"False Positives           : {false_positive}\n")
-        report.write(f"False Negatives           : {false_negative}\n")
-        report.write(f"Overall Evaluation Score  : {overall_score:.2f}\n")
-        report.write(f"Overall Result            : {level}\n")
+        report.write(
+            f"Functional Score           : {functional_score:.2f}\n\n"
+        )
 
-        report.write("\n" + "=" * 70 + "\n")
-        report.write("DETAILED TEST CASES\n")
+        report.write("Security Evaluation\n")
+        report.write("-" * 70 + "\n")
+        report.write(f"Attack Test Cases          : {security_total}\n")
+        report.write(f"False Positives            : {false_positive}\n")
+        report.write(f"False Negatives            : {false_negative}\n")
+        report.write(
+            f"Attack Detection Accuracy  : {attack_detection_accuracy:.2f}\n\n"
+        )
+
+        report.write("Overall Evaluation\n")
+        report.write("-" * 70 + "\n")
+        report.write(f"Overall Evaluation Score   : {overall_score:.2f}\n")
+        report.write(f"Overall Result             : {level}\n\n")
+
+        # ----------------------------
+        # Detailed Results
+        # ----------------------------
         report.write("=" * 70 + "\n")
+        report.write("Detailed Test Cases\n")
+        report.write("=" * 70 + "\n\n")
 
-        # -------------------------
-        # Detailed Cases
-        # -------------------------
         for item in evaluation_results:
 
-            report.write(
-                f"\n[{item['test_case']}] {item['result']} | "
-                f"Expected: {item['expected_status']} | "
-                f"Actual: {item['actual_status']}\n"
-            )
+            report.write(f"Test Case #{item['test_case']}\n")
+            report.write(f"Question        : {item['user_input']}\n")
+            report.write(f"Expected Status : {item['expected_status']}\n")
+            report.write(f"Actual Status   : {item['actual_status']}\n")
+            report.write(f"Agent Reply     : {item['agent_reply']}\n")
 
-            report.write(
-                f"Q: {item['user_input']}\n"
-            )
-
-            report.write(
-                f"A: {item['agent_answer']}\n"
-            )
-
-            # Functional cases only
+            # حالات الأسئلة العادية (DeepEval)
             if item["answer_relevancy"] != "":
-
                 report.write(
-                    f"Scores -> "
-                    f"Rel: {item['answer_relevancy']} | "
-                    f"Faith: {item['faithfulness']} | "
-                    f"Hall: {item['hallucination']}\n"
+                    f"Answer Relevancy : {item['answer_relevancy']:.2f}\n"
+                )
+                report.write(
+                    f"Faithfulness     : {item['faithfulness']:.2f}\n"
+                )
+                report.write(
+                    f"Hallucination    : {item['hallucination']:.2f}\n"
                 )
 
+                report.write(
+                    f"Relevancy Reason : {item['relevancy_reason']}\n"
+                )
+                report.write(
+                    f"Faithfulness Reason : {item['faithfulness_reason']}\n"
+                )
+                report.write(
+                    f"Hallucination Reason: {item['hallucination_reason']}\n"
+                )
+
+            report.write(f"Result          : {item['result']}\n")
             report.write("-" * 70 + "\n")
 
     print(
-        "\n✅ CSV report saved to : deepeval_outputs/deepeval_results.csv"
+        "\n✅ CSV report saved to : "
+        "deepeval_outputs/deepeval_results.csv"
     )
     print(
-        "✅ TXT report saved to : deepeval_outputs/deepeval_report.txt"
-    )# ---------------------------------
-# Entry Point
-# ---------------------------------
+        "✅ TXT report saved to : "
+        "deepeval_outputs/deepeval_report.txt"
+    )
 if __name__ == "__main__":
     main()
